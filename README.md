@@ -16,3 +16,25 @@ $ ./listperf -p "data/images/80" -b "multimedia-commons" -r "us-west-2" -e "http
 Number of replies: 25743
 ```
 (note that 0x80 instead of 0x08 gives a bit more results).
+
+### Usage
+
+```
+Usage of listperf:
+  -a string
+    	access key
+  -b string
+    	bucket for search
+  -cpus int
+    	Number of CPUs to use. Defaults to number of processors. (default 8)
+  -e string
+    	endpoint for bucket
+  -p string
+    	prefix for search
+  -r string
+    	region for search
+  -s string
+    	secret key
+  -seq
+    	Run queries sequentially when true
+```
