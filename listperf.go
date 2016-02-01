@@ -19,6 +19,7 @@ var (
 	accessFlag = flag.String("a", "", "access key")
 	secretFlag = flag.String("s", "", "secret key")
 	cpu      = flag.Int("cpus", runtime.NumCPU(), "Number of CPUs to use. Defaults to number of processors.")
+	sequentialFlag = flag.Bool("seq", false, "Run queries sequentially when true")
 )
 
 func listS3(wg *sync.WaitGroup, index int, results chan<- []string) {
@@ -85,6 +86,28 @@ func listPrefixes() (map[string]bool, error) {
 	return prefixHash, nil
 }
 
+func listPrefixesSequentially() (map[string]bool, error) {
+
+	var wg sync.WaitGroup
+	var results = make(chan []string)
+	prefixHash := make(map[string]bool)
+
+	for i := 0x0; i <= 0xf; i++ {
+		wg.Add(1)
+
+		go func(index int) {
+			listS3(&wg, index, results)
+		}(i)
+
+		result := <-results
+		for _, r := range result {
+			prefixHash[r] = true
+		}
+	}
+
+	return prefixHash, nil
+}
+
 func main() {
 	flag.Parse()
 	runtime.GOMAXPROCS(*cpu)
@@ -93,7 +116,12 @@ func main() {
 		return
 	}
 
-	list, _ := listPrefixes()
+	var list map[string]bool
+	if *sequentialFlag {
+		list, _ = listPrefixesSequentially()
+	} else {
+		list, _ = listPrefixes()
+	}
 
 	fmt.Println("Number of replies:", len(list))
 }
